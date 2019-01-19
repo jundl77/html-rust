@@ -1,0 +1,7 @@
+[package]
+name = "html-rust"
+version = "0.1.0"
+authors = ["jundl77 <julianbrendl@gmail.com>"]
+edition = "2018"
+
+[dependencies]
