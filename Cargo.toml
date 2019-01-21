@@ -5,3 +5,11 @@ authors = ["jundl77 <julianbrendl@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+iron = "0.6.*"
+router = "*"
+persistent = "0.4.0"
+serde_json = "*"
+
+[dependencies.bodyparser]
+git = "https://github.com/iron/body-parser.git"
+
