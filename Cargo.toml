@@ -12,6 +12,8 @@ serde_json = "*"
 iron-cors = "0.8.0"
 log = "0.4.0"
 simplelog = "0.5.3"
+typed-html = "0.1.1"
+typed-html-macros = "0.1.1"
 
 [dependencies.bodyparser]
 git = "https://github.com/iron/body-parser.git"
