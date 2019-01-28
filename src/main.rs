@@ -46,9 +46,9 @@ fn status_handler(req: &mut Request) -> IronResult<Response> {
 fn transpile_handler(req: &mut Request) -> IronResult<Response> {
     let json_body = req.get::<bodyparser::Json>();
     return match json_body {
-        Ok(Some(json_body)) => Ok(Response::with(transpile::transpile(json_body))),
-        Ok(None) => Ok(Response::with("Error: No body in request.")),
-        Err(err) => Ok(Response::with(err.to_string()))
+        Ok(Some(json_body)) => Ok(Response::with((status::Ok, transpile::transpile(json_body)))),
+        Ok(None) => Ok(Response::with((status::BadRequest, "Error: No body in request.")))),
+        Err(err) => Ok(Response::with((status::BadRequest, err.to_string())))
     };
 }
 
