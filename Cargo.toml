@@ -9,7 +9,12 @@ iron = "0.6.*"
 router = "*"
 persistent = "0.4.0"
 serde_json = "*"
+iron-cors = "0.8.0"
+log = "0.4.0"
+simplelog = "0.5.3"
 
 [dependencies.bodyparser]
 git = "https://github.com/iron/body-parser.git"
 
+[dependencies.logger]
+git = "https://github.com/iron/logger.git"

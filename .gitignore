@@ -1,6 +1,8 @@
 # Rust Files
-/target
 **/*.rs.bk
+
+# Output
+target
 
 # IDE Files
 .idea
