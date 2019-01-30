@@ -4,5 +4,8 @@
 # Output
 target
 
+# Generated
+data
+
 # IDE Files
 .idea

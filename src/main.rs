@@ -17,10 +17,12 @@ use iron_cors::CorsMiddleware;
 use logger::Logger;
 use simplelog::*;
 
+use std::fs;
+
 mod transpile;
 
 fn main() {
-    TermLogger::init(LevelFilter::Info, Config::default());
+    init();
 
     let (logger_before, logger_after) = Logger::new(None);
     let cors_middleware = CorsMiddleware::with_allow_any();
@@ -50,5 +52,10 @@ fn transpile_handler(req: &mut Request) -> IronResult<Response> {
         Ok(None) => Ok(Response::with((status::BadRequest, "Error: No body in request."))),
         Err(err) => Ok(Response::with((status::BadRequest, err.to_string())))
     };
+}
+
+fn init() {
+    TermLogger::init(LevelFilter::Info, Config::default());
+    fs::create_dir_all("data");
 }
 
