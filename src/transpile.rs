@@ -23,13 +23,17 @@ use typed_html::types::LinkType;
 use typed_html::{dom::DOMTree, html, text, OutputType};
 
 fn main() {
-    let code = \"test\";
+    println!(\"{}\", render().to_string());
+}
+";
 
-    let doc: DOMTree<String> = html!(
+const TEST: &str = "
+fn render() -> DOMTree<String> {
+    let code = \"HELLO WORLD!\";
+
+    return html!(
         <div>{ text!(code) }</div>
     );
-
-    println!(\"{}\", doc.to_string());
 }
 ";
 
@@ -41,7 +45,8 @@ pub fn transpile(json: serde_json::value::Value) -> Response {
         return Response::with((status::BadRequest, error_msg));
     }
 
-    let result = eval(PRELUDE);
+    let complete_code: String = format!("{}\n{}", PRELUDE, code);
+    let result = eval(complete_code.as_str());
 
     return Response::with((status::Ok, result));
 }
@@ -51,6 +56,8 @@ fn eval(code: &str) -> String {
 
     create_src_file(code, &rand);
     if !compile_file(&rand) {
+        remove_files(&rand);
+
         // TODO: Error handling
         println!("Error");
     }
