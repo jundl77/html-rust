@@ -1,0 +1,26 @@
+[package]
+name = "typed-html"
+version = "0.1.1"
+authors = ["Bodil Stokke <bodil@bodil.org>"]
+license = "MPL-2.0+"
+description = "Type checked JSX for Rust"
+repository = "https://github.com/bodil/typed-html"
+documentation = "http://docs.rs/typed-html/"
+readme = "../README.md"
+categories = ["template-engine", "wasm", "web-programming"]
+keywords = ["jsx", "html", "wasm"]
+
+[badges]
+travis-ci = { repository = "bodil/typed-html" }
+maintenance = { status = "actively-developed" }
+
+[dependencies]
+typed-html-macros = { path = "../macros" }
+strum = "0.13.0"
+strum_macros = "0.13.0"
+mime = "0.3.12"
+language-tags = "0.2.2"
+htmlescape = "0.3.1"
+proc-macro-hack = "0.5.2"
+proc-macro-nested = "0.1.0"
+stdweb = { version = "0.4.10", optional = true }
