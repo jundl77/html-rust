@@ -1,6 +1,4 @@
 extern crate iron;
-extern crate typed_html;
-extern crate typed_html_macros;
 extern crate rand;
 
 use rand::{thread_rng, Rng};
@@ -8,10 +6,6 @@ use rand::distributions::{Alphanumeric, Uniform, Standard};
 
 use iron::prelude::*;
 use iron::status;
-
-use typed_html::elements::FlowContent;
-use typed_html::types::LinkType;
-use typed_html::{dom::DOMTree, html, text, OutputType};
 
 use std::io::prelude::*;
 use std::fs;
@@ -21,7 +15,23 @@ use std::error::Error;
 
 use std::process::Command;
 
-struct Html(DOMTree<String>);
+const PRELUDE: &str = "
+extern crate typed_html;
+
+use typed_html::elements::FlowContent;
+use typed_html::types::LinkType;
+use typed_html::{dom::DOMTree, html, text, OutputType};
+
+fn main() {
+    let code = \"test\";
+
+    let doc: DOMTree<String> = html!(
+        <div>{ text!(code) }</div>
+    );
+
+    println!(\"{}\", doc.to_string());
+}
+";
 
 pub fn transpile(json: serde_json::value::Value) -> Response {
     let error_msg = "Error: json[code] is not a string.";
@@ -31,37 +41,31 @@ pub fn transpile(json: serde_json::value::Value) -> Response {
         return Response::with((status::BadRequest, error_msg));
     }
 
-    let a = "fn main() {\
-  println!(\"Hello World!\");\
-}";
-    eval(a);
+    let result = eval(PRELUDE);
 
-    let doc: DOMTree<String> = html!(
-        <div>{ text!(code) }</div>
-    );
-
-    return Response::with((status::Ok, doc.to_string()));
+    return Response::with((status::Ok, result));
 }
 
 fn eval(code: &str) -> String {
     let rand: String = thread_rng().sample_iter(&Alphanumeric).take(60).collect();
-    let path_str: String = format!("data/eval_{}.rs", rand);
-    let path_exec: String = format!("data/eval_{}", rand);
-    let path = Path::new(&path_str);
 
-    create_src_file(code, path);
-    if !compile_file(&path_str) {
+    create_src_file(code, &rand);
+    if !compile_file(&rand) {
         // TODO: Error handling
+        println!("Error");
     }
 
-    let result = eval_file(&path_exec);
-    remove_files(&path_str, &path_exec);
+    let result = eval_file(&rand);
+    remove_files(&rand);
     println!("{}", result);
 
     return result;
 }
 
-fn create_src_file(code: &str, path: &Path) {
+fn create_src_file(code: &str, rand: &String) {
+    let path_str: String = format!("data/eval_{}.rs", rand);
+    let path = Path::new(&path_str);
+
     let mut file = match File::create(&path) {
         Err(why) => panic!("couldn't create {}: {}", path.display(), why.description()),
         Ok(file) => file,
@@ -73,19 +77,25 @@ fn create_src_file(code: &str, path: &Path) {
     }
 }
 
-fn compile_file(path: &String) -> bool {
+fn compile_file(rand: &String) -> bool {
+    let path: String = format!("data/eval_{}.rs", rand);
+    let crate_name: String = format!("{}_crate", rand);
+
     let output = Command::new("/Users/julianbrendl/.cargo/bin/rustc")
         .arg(path)
-        .arg("--out-dir")
-        .arg("data")
+        .args(&["--crate-name", crate_name.as_str(), "--crate-type", "bin", "--out-dir", "data"])
+        .args(&["--emit=dep-info,link", "-C", "debuginfo=2", "-C", "incremental=data/typed-html/target/release/incremental"])
+        .args(&["-L", "dependency=data/typed-html/target/release/deps", "--extern", "typed_html=data/typed-html/target/release/libtyped_html.rlib"])
         .status()
         .expect("Error");
 
     return output.success();
 }
 
-fn eval_file(path: &String) -> String {
-    let cmd = format!("./{}", path);
+fn eval_file(rand: &String) -> String {
+    let path_exec: String = format!("data/{}_crate", rand);
+
+    let cmd = format!("./{}", path_exec);
     let output = Command::new(cmd)
         .output()
         .expect("Error evaluating code.");
@@ -93,8 +103,10 @@ fn eval_file(path: &String) -> String {
     return String::from_utf8(output.stdout).unwrap_or("Error evaluating code.".to_string());
 }
 
-fn remove_files(src_file: &String, bin_file: &String) {
-    fs::remove_file(src_file);
-    fs::remove_file(bin_file);
+fn remove_files(rand: &String) {
+    fs::remove_file(format!("data/eval_{}.rs", rand));
+    fs::remove_file(format!("data/{}_crate", rand));
+    fs::remove_file(format!("data/{}_crate.d", rand));
+    fs::remove_dir_all(format!("data/{}_crate.dSYM", rand));
 }
 
