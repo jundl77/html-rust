@@ -46,27 +46,28 @@ pub fn transpile(json: serde_json::value::Value) -> Response {
     }
 
     let complete_code: String = format!("{}\n{}", PRELUDE, code);
-    let result = eval(complete_code.as_str());
+    let result: Option<String> = eval(complete_code.as_str());
 
-    return Response::with((status::Ok, result));
+    return match result {
+        Some(x) => Response::with((status::Ok, x)),
+        None    => Response::with((status::BadRequest, "Error while transpiling query.")),
+    };
 }
 
-fn eval(code: &str) -> String {
+fn eval(code: &str) -> Option<String> {
     let rand: String = thread_rng().sample_iter(&Alphanumeric).take(60).collect();
 
     create_src_file(code, &rand);
     if !compile_file(&rand) {
         remove_files(&rand);
 
-        // TODO: Error handling
-        println!("Error");
+        return None;
     }
 
     let result = eval_file(&rand);
     remove_files(&rand);
-    println!("{}", result);
 
-    return result;
+    return Some(result);
 }
 
 fn create_src_file(code: &str, rand: &String) {
