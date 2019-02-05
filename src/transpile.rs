@@ -37,37 +37,32 @@ fn render() -> DOMTree<String> {
 }
 ";
 
-pub fn transpile(json: serde_json::value::Value) -> Response {
+pub fn transpile(json: serde_json::value::Value) -> Option<String> {
     let error_msg = "Error: json[code] is not a string.";
     let code = json["code"].as_str().unwrap_or(error_msg);
 
     if code.eq(error_msg){
-        return Response::with((status::BadRequest, error_msg));
+        return None;
     }
 
     let complete_code: String = format!("{}\n{}", PRELUDE, code);
-    let result: Option<String> = eval(complete_code.as_str());
-
-    return match result {
-        Some(x) => Response::with((status::Ok, x)),
-        None    => Response::with((status::BadRequest, "Error while transpiling query.")),
-    };
+    return eval(complete_code.as_str());
 }
 
 fn eval(code: &str) -> Option<String> {
     let rand: String = thread_rng().sample_iter(&Alphanumeric).take(60).collect();
 
     create_src_file(code, &rand);
+
     if !compile_file(&rand) {
         remove_files(&rand);
-
         return None;
     }
 
     let result = eval_file(&rand);
     remove_files(&rand);
 
-    return Some(result);
+    return result;
 }
 
 fn create_src_file(code: &str, rand: &String) {
@@ -100,15 +95,21 @@ fn compile_file(rand: &String) -> bool {
     return output.success();
 }
 
-fn eval_file(rand: &String) -> String {
+fn eval_file(rand: &String) -> Option<String> {
     let path_exec: String = format!("data/{}_crate", rand);
+    let error = "Error";
 
     let cmd = format!("./{}", path_exec);
     let output = Command::new(cmd)
         .output()
-        .expect("Error evaluating code.");
+        .expect(error);
 
-    return String::from_utf8(output.stdout).unwrap_or("Error evaluating code.".to_string());
+    let result = String::from_utf8(output.stdout).unwrap();
+
+    if result != error {
+        return Some(result);
+    }
+    return None;
 }
 
 fn remove_files(rand: &String) {
