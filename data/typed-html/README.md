@@ -2,6 +2,8 @@
 
 # typed-html
 
+**Important:** This repo is a clone of [typed-html](https://github.com/bodil/typed-html). Go there for more info.
+
 This crate provides the `html!` macro for building HTML documents inside your
 Rust code using roughly [JSX] compatible syntax.
 
