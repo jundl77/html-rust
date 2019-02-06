@@ -1,0 +1,5 @@
+language: rust
+script:
+  - cargo build --verbose --all --target-dir data/typed-html
+  - cargo build --verbose --all
+  - cargo test --verbose --all

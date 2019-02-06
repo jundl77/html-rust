@@ -3,6 +3,8 @@
 
 # Output
 target
+debug
+release
 
 # IDE Files
 .idea
