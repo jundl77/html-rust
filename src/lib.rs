@@ -37,14 +37,7 @@ fn render() -> DOMTree<String> {
 }
 ";
 
-pub fn transpile(json: serde_json::value::Value) -> Option<String> {
-    let error_msg = "Error: json[code] is not a string.";
-    let code = json["code"].as_str().unwrap_or(error_msg);
-
-    if code.eq(error_msg){
-        return None;
-    }
-
+pub fn transpile(code: &str) -> Option<String> {
     let complete_code: String = format!("{}\n{}", PRELUDE, code);
     return eval(complete_code.as_str());
 }
@@ -76,7 +69,7 @@ fn create_src_file(code: &str, rand: &String) {
 
     match file.write_all(code.as_bytes()) {
         Err(why) => panic!("couldn't write to {}: {}", path.display(), why.description()),
-        Ok(_) => info!("successfully wrote to {}", path.display()),
+        Ok(_) => println!("successfully wrote to {}", path.display()),
     }
 }
 
@@ -84,7 +77,7 @@ fn compile_file(rand: &String) -> bool {
     let path: String = format!("data/eval_{}.rs", rand);
     let crate_name: String = format!("{}_crate", rand);
 
-    let output = Command::new("/Users/julianbrendl/.cargo/bin/rustc")
+    let output = Command::new("/usr/local/cargo/bin/rustc")
         .arg(path)
         .args(&["--crate-name", crate_name.as_str(), "--crate-type", "bin", "--out-dir", "data"])
         .args(&["--emit=dep-info,link", "-C", "debuginfo=2", "-C", "incremental=data/typed-html/target/release/incremental"])
