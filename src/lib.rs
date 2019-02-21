@@ -1,3 +1,5 @@
+#![recursion_limit = "1024"]
+
 extern crate iron;
 extern crate rand;
 
@@ -16,6 +18,8 @@ use std::error::Error;
 use std::process::Command;
 
 const PRELUDE: &str = "
+#![recursion_limit = \"1024\"]
+#[macro_use]
 extern crate typed_html;
 
 use typed_html::elements::FlowContent;
